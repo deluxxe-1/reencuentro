@@ -275,16 +275,15 @@ button {
 
 .mainLayout__tree {
   position: absolute;
-  right: clamp(40px, 15vw, 200px);
-  bottom: clamp(100px, 22vh, 260px);
+  right: clamp(60px, 18vw, 260px);
+  bottom: clamp(120px, 26vh, 300px);
   transform: translate3d(0, 0, 0);
-  overflow: hidden;
 }
 
 .mainLayout__arrowButton {
   position: absolute;
   left: 24px;
-  bottom: 24px;
+  bottom: clamp(100px, 18vh, 180px);
   transform: none;
   border: none;
   background: transparent;
@@ -298,13 +297,13 @@ button {
   }
   
   .mainLayout__tree {
-    right: clamp(20px, 8vw, 80px);
-    bottom: clamp(80px, 16vh, 160px);
+    right: clamp(30px, 12vw, 100px);
+    bottom: clamp(100px, 20vh, 180px);
   }
   
   .mainLayout__arrowButton {
     left: 16px;
-    bottom: 16px;
+    bottom: clamp(80px, 14vh, 120px);
   }
 }
 
@@ -388,17 +387,16 @@ button {
   background: transparent;
   padding: 0;
   cursor: pointer;
-  width: clamp(80px, 12vw, 160px);
-  height: clamp(60px, 8vw, 100px);
-  overflow: hidden;
+  width: clamp(80px, 14vw, 180px);
+  height: clamp(100px, 18vw, 220px);
 }
 
 .treeButton__img {
   position: absolute;
   left: 50%;
   bottom: 0;
-  transform: translate3d(-50%, 40%, 0);
-  width: 200%;
+  transform: translate3d(-50%, 0, 0);
+  width: 100%;
   height: auto;
   user-select: none;
   filter: drop-shadow(rgba(0, 0, 0, 0.16) 0 8px 10px);
@@ -406,9 +404,139 @@ button {
 
 @media (max-width: 768px) {
   .treeButton {
-    width: clamp(60px, 20vw, 120px);
-    height: clamp(45px, 12vw, 80px);
+    width: clamp(60px, 22vw, 140px);
+    height: clamp(80px, 28vw, 180px);
   }
+}
+
+/* Trunk View */
+.trunkView {
+  position: relative;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, #D4A5C7 0%, #E8C4B8 35%, #F5E6C8 100%);
+  cursor: pointer;
+}
+
+.trunkView__img {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate3d(-50%, 20%, 0);
+  width: min(600px, 80vw);
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Tree Full View */
+.treeFullView {
+  position: relative;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, #D4A5C7 0%, #E8C4B8 35%, #F5E6C8 100%);
+}
+
+/* Auth Overlay */
+.authOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.authSheet {
+  width: min(400px, calc(100vw - 32px));
+  padding: 28px 24px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: rgba(0, 0, 0, 0.2) 0 20px 40px -20px;
+}
+
+.authTitle {
+  margin: 0 0 24px;
+  font-size: 28px;
+  color: rgba(60, 50, 50, 0.92);
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.authField {
+  margin-bottom: 16px;
+}
+
+.authInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  color: rgba(30, 30, 30, 0.9);
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.authInput:focus {
+  border-color: rgba(181, 92, 255, 0.5);
+}
+
+.authInput::placeholder {
+  color: rgba(100, 100, 100, 0.6);
+}
+
+.authError {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 100, 100, 0.15);
+  color: rgba(180, 50, 50, 0.9);
+  font-size: 14px;
+  text-align: center;
+}
+
+.authButton {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b55cff 0%, #ff70d6 100%);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.authButton:hover {
+  transform: translateY(-1px);
+}
+
+.authButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.authSwitch {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(100, 80, 120, 0.8);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.authSwitch:hover {
+  color: rgba(181, 92, 255, 1);
 }
 
 .treeHud {
@@ -420,6 +548,7 @@ button {
   justify-content: flex-end;
   gap: 12px;
   pointer-events: none;
+  z-index: 10;
 }
 
 .treeHud__pill {
@@ -479,6 +608,10 @@ button {
   will-change: transform;
   user-select: none;
   pointer-events: none;
+}
+
+.treeView__img--centered {
+  transform: translate3d(-50%, -50%, 0) scale(1.4);
 }
 
 .estancoView {

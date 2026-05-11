@@ -169,9 +169,6 @@ export function EstancoRoute() {
               decoding="async"
               loading="lazy"
             />
-            {text && stoneState !== 'idle' && (
-              <span className="estancoView__piedraText">{text}</span>
-            )}
           </div>
         )}
 

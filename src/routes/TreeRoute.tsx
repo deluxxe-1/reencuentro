@@ -1,13 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Scene } from '../components/Scene'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, type User } from 'firebase/auth'
+import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } from 'firebase/firestore'
+import { MiniDoor } from '../components/MiniDoor'
+import { getFirebaseClients } from '../lib/firebase'
 import { ASSETS, FLOWER_HEX_COLORS, type FlowerColor } from '../lib/assets'
-import { addFlower, getFlowers, type Flower } from '../lib/flowers'
-import { usePrefersReducedMotion } from '../lib/usePrefersReducedMotion'
-import { useBackgroundUrl } from '../state/preferences'
-
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-}
 
 const COLOR_OPTIONS: { id: FlowerColor; hex: string }[] = [
   { id: 'amarilla', hex: '#F7F4C5' },
@@ -18,72 +15,230 @@ const COLOR_OPTIONS: { id: FlowerColor; hex: string }[] = [
   { id: 'azul', hex: '#55D7FF' },
 ]
 
+type ViewState = 'trunk' | 'auth' | 'tree'
+type AuthMode = 'login' | 'register'
+
+type Flower = {
+  id: string
+  color: FlowerColor
+  tema: string
+  nota: string
+  items: FlowerItem[]
+  createdAt: Date
+}
+
+type FlowerItem = {
+  type: 'youtube' | 'image' | 'text'
+  content: string
+}
+
 export function TreeRoute() {
-  const backgroundUrl = useBackgroundUrl()
-  const reducedMotion = usePrefersReducedMotion()
-  const [progress, setProgress] = useState(0)
+  const navigate = useNavigate()
+  const firebase = getFirebaseClients()
+  
+  const [viewState, setViewState] = useState<ViewState>('trunk')
+  const [authMode, setAuthMode] = useState<AuthMode>('register')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState('')
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  
   const [menuOpen, setMenuOpen] = useState(false)
   const [color, setColor] = useState<FlowerColor>('rosa')
   const [tema, setTema] = useState('')
   const [nota, setNota] = useState('')
   const [flowers, setFlowers] = useState<Flower[]>([])
   const [selectedFlower, setSelectedFlower] = useState<Flower | null>(null)
-  const rafRef = useRef<number | null>(null)
-  const startRef = useRef<number | null>(null)
 
+  // Check auth state
   useEffect(() => {
-    setFlowers(getFlowers())
-  }, [])
+    if (!firebase) return
+    
+    const unsubscribe = onAuthStateChanged(firebase.auth, (currentUser) => {
+      setUser(currentUser)
+      if (currentUser) {
+        setViewState('tree')
+        loadFlowers(currentUser.uid)
+      }
+    })
+    
+    return () => unsubscribe()
+  }, [firebase])
 
-  useEffect(() => {
-    if (reducedMotion) {
-      setProgress(1)
+  const loadFlowers = async (userId: string) => {
+    if (!firebase) return
+    
+    try {
+      const flowersRef = collection(firebase.db, 'flowers')
+      const q = query(flowersRef, where('userId', '==', userId), orderBy('createdAt', 'desc'))
+      const snapshot = await getDocs(q)
+      const loadedFlowers: Flower[] = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+      })) as Flower[]
+      setFlowers(loadedFlowers)
+    } catch (error) {
+      console.log('[v0] Error loading flowers:', error)
+    }
+  }
+
+  const handleTrunkClick = () => {
+    if (user) {
+      setViewState('tree')
+    } else {
+      setViewState('auth')
+    }
+  }
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!firebase) {
+      setAuthError('Firebase no está configurado')
       return
     }
-
-    const durationMs = 1200
-    const tick = (now: number) => {
-      if (startRef.current === null) startRef.current = now
-      const elapsed = now - startRef.current
-      const t = Math.min(1, elapsed / durationMs)
-      setProgress(easeInOutCubic(t))
-      if (t < 1) rafRef.current = window.requestAnimationFrame(tick)
+    
+    setIsLoading(true)
+    setAuthError('')
+    
+    try {
+      if (authMode === 'register') {
+        await createUserWithEmailAndPassword(firebase.auth, email, password)
+      } else {
+        await signInWithEmailAndPassword(firebase.auth, email, password)
+      }
+      setViewState('tree')
+    } catch (error: unknown) {
+      const firebaseError = error as { code?: string; message?: string }
+      if (firebaseError.code === 'auth/email-already-in-use') {
+        setAuthError('Este email ya está registrado')
+      } else if (firebaseError.code === 'auth/weak-password') {
+        setAuthError('La contraseña debe tener al menos 6 caracteres')
+      } else if (firebaseError.code === 'auth/invalid-email') {
+        setAuthError('Email inválido')
+      } else if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/user-not-found') {
+        setAuthError('Email o contraseña incorrectos')
+      } else {
+        setAuthError(firebaseError.message || 'Error de autenticación')
+      }
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    rafRef.current = window.requestAnimationFrame(tick)
-    return () => {
-      if (rafRef.current) window.cancelAnimationFrame(rafRef.current)
+  const handlePlantFlower = async () => {
+    if (!firebase || !user) return
+    
+    try {
+      const flowersRef = collection(firebase.db, 'flowers')
+      const docRef = await addDoc(flowersRef, {
+        userId: user.uid,
+        color,
+        tema,
+        nota,
+        items: [],
+        createdAt: serverTimestamp(),
+      })
+      
+      const newFlower: Flower = {
+        id: docRef.id,
+        color,
+        tema,
+        nota,
+        items: [],
+        createdAt: new Date(),
+      }
+      
+      setFlowers((prev) => [newFlower, ...prev])
+      setMenuOpen(false)
+      setTema('')
+      setNota('')
+    } catch (error) {
+      console.log('[v0] Error planting flower:', error)
     }
-  }, [reducedMotion])
-
-  const transform = useMemo(() => {
-    const startYvh = 80
-    const endYvh = -50
-    const startScale = 3.5
-    const endScale = 1.4
-    const y = startYvh + (endYvh - startYvh) * progress
-    const s = startScale + (endScale - startScale) * progress
-    return `translate3d(-50%, ${y}%, 0) scale(${s})`
-  }, [progress])
-
-  const handlePlantFlower = () => {
-    const newFlower = addFlower({ color, tema, nota })
-    setFlowers((prev) => [...prev, newFlower])
-    setMenuOpen(false)
-    setTema('')
-    setNota('')
   }
 
-  const handleFlowerClick = (flower: Flower) => {
-    setSelectedFlower(flower)
+  // Trunk View with gradient background
+  if (viewState === 'trunk') {
+    return (
+      <div className="trunkView" onClick={handleTrunkClick}>
+        <img
+          className="trunkView__img"
+          src={ASSETS.tree.base}
+          alt="Tronco del árbol"
+          decoding="async"
+          fetchPriority="high"
+        />
+        <MiniDoor onClick={() => navigate('/')} />
+      </div>
+    )
   }
 
-  const closeFlowerView = () => {
-    setSelectedFlower(null)
+  // Auth View
+  if (viewState === 'auth') {
+    return (
+      <div className="trunkView">
+        <img
+          className="trunkView__img"
+          src={ASSETS.tree.base}
+          alt="Tronco del árbol"
+          decoding="async"
+        />
+        
+        <div className="authOverlay">
+          <form className="authSheet" onSubmit={handleAuth}>
+            <h2 className="authTitle">
+              {authMode === 'register' ? 'Crea tu cuenta' : 'Inicia sesión'}
+            </h2>
+            
+            <div className="authField">
+              <input
+                type="email"
+                className="authInput"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+              />
+            </div>
+            
+            <div className="authField">
+              <input
+                type="password"
+                className="authInput"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Contraseña"
+                required
+                minLength={6}
+              />
+            </div>
+            
+            {authError && <p className="authError">{authError}</p>}
+            
+            <button type="submit" className="authButton" disabled={isLoading}>
+              {isLoading ? 'Cargando...' : authMode === 'register' ? 'Registrarse' : 'Entrar'}
+            </button>
+            
+            <button
+              type="button"
+              className="authSwitch"
+              onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}
+            >
+              {authMode === 'register' ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+            </button>
+          </form>
+        </div>
+        
+        <MiniDoor onClick={() => navigate('/')} />
+      </div>
+    )
   }
 
+  // Tree View with flowers
   return (
-    <Scene backgroundUrl={backgroundUrl} showHills={false} showDoorToMain>
+    <div className="treeFullView">
       <div className="treeHud">
         <button type="button" className="newFlowerButton" onClick={() => setMenuOpen(true)}>
           Nueva flor
@@ -92,16 +247,15 @@ export function TreeRoute() {
 
       <div className="treeView" aria-label="Vista del árbol">
         <img
-          className="treeView__img"
+          className="treeView__img treeView__img--centered"
           src={ASSETS.tree.base}
           alt="Árbol"
           decoding="async"
           fetchPriority="high"
-          style={{ transform }}
         />
         
         {/* Render planted flowers on the tree */}
-        <div className="treeFlowers" style={{ opacity: progress }}>
+        <div className="treeFlowers">
           {flowers.map((flower, index) => (
             <button
               key={flower.id}
@@ -111,7 +265,7 @@ export function TreeRoute() {
                 left: `${30 + (index % 5) * 10}%`,
                 top: `${20 + Math.floor(index / 5) * 15}%`,
               }}
-              onClick={() => handleFlowerClick(flower)}
+              onClick={() => setSelectedFlower(flower)}
               aria-label={`Flor ${flower.tema || flower.color}`}
             >
               <img
@@ -125,7 +279,7 @@ export function TreeRoute() {
       </div>
 
       {/* New Flower Modal */}
-      {menuOpen ? (
+      {menuOpen && (
         <div className="modalOverlay" role="dialog" aria-modal="true" aria-label="Planta una nueva flor">
           <div className="modalSheet">
             <h2 className="modalTitle">Planta una nueva flor</h2>
@@ -180,14 +334,14 @@ export function TreeRoute() {
             </div>
           </div>
         </div>
-      ) : null}
+      )}
 
       {/* Flower Interior View */}
-      {selectedFlower ? (
+      {selectedFlower && (
         <div
           className="flowerInterior"
           style={{ background: `linear-gradient(180deg, ${FLOWER_HEX_COLORS[selectedFlower.color]} 0%, #FFFDE7 100%)` }}
-          onClick={closeFlowerView}
+          onClick={() => setSelectedFlower(null)}
           role="dialog"
           aria-modal="true"
           aria-label={`Interior de flor ${selectedFlower.tema}`}
@@ -202,7 +356,7 @@ export function TreeRoute() {
               <div className="flowerInterior__infoRow">
                 <span className="flowerInterior__label">Empezó</span>
                 <span className="flowerInterior__value">
-                  {new Date(selectedFlower.createdAt).toLocaleDateString('es-ES', {
+                  {selectedFlower.createdAt.toLocaleDateString('es-ES', {
                     day: 'numeric',
                     month: 'short',
                   })}
@@ -219,14 +373,16 @@ export function TreeRoute() {
             <button
               type="button"
               className="flowerInterior__close"
-              onClick={closeFlowerView}
+              onClick={() => setSelectedFlower(null)}
               aria-label="Cerrar"
             >
               Cerrar
             </button>
           </div>
         </div>
-      ) : null}
-    </Scene>
+      )}
+
+      <MiniDoor onClick={() => navigate('/')} />
+    </div>
   )
 }

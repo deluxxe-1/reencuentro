@@ -32,6 +32,7 @@ export const ASSETS = {
   },
   tree: {
     base: assetPath('/assets/arbol/arbol arbol.png'),
+    mainTree: assetPath('/assets/arbol/aarbol main.png'),
     dentroFlor: assetPath('/assets/arbol/dentro-flor.png'),
     flor: {
       amarilla: assetPath('/assets/arbol/flor amarilla.png'),
