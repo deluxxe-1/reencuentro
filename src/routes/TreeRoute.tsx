@@ -18,6 +18,7 @@ import {
 import { MiniDoor } from '../components/MiniDoor'
 import { getFirebaseClients } from '../lib/firebase'
 import { ASSETS, FLOWER_HEX_COLORS, type FlowerColor } from '../lib/assets'
+import { useBackgroundUrl } from '../state/preferences'
 
 const COLOR_OPTIONS: { id: FlowerColor; hex: string }[] = [
   { id: 'amarilla', hex: '#F7F4C5' },
@@ -47,6 +48,7 @@ function nameToEmail(name: string): string {
 export function TreeRoute() {
   const navigate = useNavigate()
   const firebase = getFirebaseClients()
+  const backgroundUrl = useBackgroundUrl()
 
   const [viewState, setViewState] = useState<ViewState>('trunk')
   const [authMode, setAuthMode] = useState<AuthMode>('register')
@@ -197,7 +199,7 @@ export function TreeRoute() {
   // Trunk-only view (image 1)
   if (viewState === 'trunk') {
     return (
-      <div className="trunkScene">
+      <div className="trunkScene" style={{ backgroundImage: `url("${backgroundUrl}")` }}>
         <button
           type="button"
           className="trunkScene__trunkButton"
@@ -220,7 +222,7 @@ export function TreeRoute() {
   // Auth form over trunk (image 2)
   if (viewState === 'auth') {
     return (
-      <div className="trunkScene">
+      <div className="trunkScene" style={{ backgroundImage: `url("${backgroundUrl}")` }}>
         <img
           className="trunkScene__trunkImg"
           src={ASSETS.tree.base}

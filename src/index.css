@@ -108,16 +108,21 @@ button {
   left: 50%;
   bottom: 0;
   transform: translate3d(-50%, 0, 0);
-  width: clamp(600px, 80vw, 1000px);
+  width: 100%;
+  min-width: 100vw;
   max-width: none;
   height: auto;
+  min-height: 60vh;
+  object-fit: cover;
+  object-position: center bottom;
   user-select: none;
   pointer-events: none;
+  z-index: 2;
 }
 
 @media (max-width: 768px) {
   .scene__hills {
-    width: 100vw;
+    min-height: 50vh;
   }
 }
 
@@ -171,6 +176,7 @@ button {
   position: relative;
   height: 100%;
   width: 100%;
+  z-index: 3;
 }
 
 .start {
@@ -291,7 +297,7 @@ button {
   justify-content: center;
   align-items: center;
   pointer-events: auto;
-  z-index: 5;
+  z-index: 10;
   position: absolute;
   top: 10%;
   left: 45%;
@@ -302,11 +308,10 @@ button {
   justify-content: center;
   align-items: center;
   pointer-events: auto;
-  z-index: 0;
+  z-index: -1;
   position: absolute;
   top: -35%;
   left: 66%;
-
 }
 
 .mainLayout__arrowButton {
@@ -452,6 +457,34 @@ button {
   .treeButton__img {
     transform: translate3d(-50%, 30%, 0);
   }
+}
+
+/* Trunk Scene */
+.trunkScene {
+  position: relative;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trunkScene__trunkButton {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.trunkScene__trunkImg {
+  width: min(500px, 70vw);
+  height: auto;
+  user-select: none;
+  filter: drop-shadow(rgba(0, 0, 0, 0.2) 0 20px 30px);
 }
 
 /* Trunk View */
