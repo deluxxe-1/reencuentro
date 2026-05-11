@@ -1,0 +1,570 @@
+:root {
+  --ui-bg: rgba(255, 255, 255, 0.65);
+  --ui-bg-strong: rgba(255, 255, 255, 0.82);
+  --ui-text: rgba(18, 21, 26, 0.92);
+  --ui-border: rgba(18, 21, 26, 0.12);
+  --ui-shadow: rgba(0, 0, 0, 0.18) 0 10px 24px -16px;
+  --accent: #b55cff;
+  --ground: #2f8f5e;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+.routeFade {
+  height: 100%;
+  animation: routeFadeIn 220ms ease-out;
+}
+
+@keyframes routeFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.scene {
+  position: relative;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.scene__cloud {
+  position: absolute;
+  top: 7vh;
+  height: clamp(80px, 12vh, 140px);
+  width: auto;
+  opacity: 0.9;
+  pointer-events: none;
+  user-select: none;
+  transform: translateZ(0);
+}
+
+.scene__cloud--1 {
+  left: 8vw;
+  top: 5vh;
+  animation: cloudFloat1 10s ease-in-out infinite;
+}
+
+.scene__cloud--2 {
+  right: 6vw;
+  top: 12vh;
+  height: clamp(60px, 9vh, 110px);
+  opacity: 0.82;
+  animation: cloudFloat2 12s ease-in-out infinite;
+}
+
+@keyframes cloudFloat1 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+@keyframes cloudFloat2 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+
+
+.scene__hills {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate3d(-50%, 0, 0);
+  width: max(100%, 110vw);
+  max-width: none;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+.miniDoor {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.miniDoor__shape {
+  display: block;
+  width: 34px;
+  height: 44px;
+  border-radius: 18px 18px 10px 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: rgba(0, 0, 0, 0.14) 0 10px 18px -12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingOverlay,
+  .mainLayout__arrow,
+  .scene__cloud--1,
+  .scene__cloud--2,
+  .routeFade {
+    animation: none;
+  }
+}
+
+.scene__hills--lifted {
+  bottom: 18vh;
+}
+
+.scene__ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 18vh;
+  background: var(--ground);
+}
+
+.scene__content {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.start {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate3d(-50%, -52%, 0);
+  text-align: center;
+  color: var(--ui-text);
+}
+
+.start__title {
+  margin: 0 0 18px;
+  font-size: clamp(34px, 5vw, 54px);
+  letter-spacing: -0.02em;
+  text-shadow: rgba(255, 255, 255, 0.35) 0 1px 0;
+}
+
+.start__cta {
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg-strong);
+  color: var(--ui-text);
+  padding: 12px 18px;
+  border-radius: 999px;
+  box-shadow: var(--ui-shadow);
+  cursor: pointer;
+}
+
+.start__cta:active {
+  transform: translate3d(0, 1px, 0);
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.15));
+  animation: loadingFade 1100ms ease-out;
+}
+
+.loadingArt {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate3d(-50%, 0, 0);
+  width: max(100%, 110vw);
+  max-width: none;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes loadingFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hud {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 14px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hud__group {
+  display: inline-flex;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 999px;
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--ui-shadow);
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+
+.hud__pill {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--ui-text);
+  cursor: pointer;
+}
+
+.hud__pill--active {
+  border-color: rgba(181, 92, 255, 0.45);
+  background: rgba(181, 92, 255, 0.13);
+}
+
+.mainLayout {
+  position: absolute;
+  inset: 0;
+}
+
+.mainLayout__chair {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate3d(-50%, -50%, 0);
+}
+
+.mainLayout__tree {
+  position: absolute;
+  right: clamp(28px, 10vw, 160px);
+  top: 38%;
+  transform: translate3d(0, -50%, 0);
+}
+
+.mainLayout__arrowButton {
+  position: absolute;
+  left: 50%;
+  bottom: 12vh;
+  transform: translate3d(-50%, 0, 0);
+  border: none;
+  background: transparent;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.mainLayout__arrow {
+  width: 28px;
+  height: 28px;
+  transform: rotate(45deg);
+  border-left: 3px solid rgba(255, 255, 255, 0.92);
+  border-bottom: 3px solid rgba(255, 255, 255, 0.92);
+  filter: drop-shadow(rgba(0, 0, 0, 0.14) 0 8px 10px);
+  animation: arrowBounce 1.8s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: rotate(45deg) translate3d(0, 0, 0); }
+  50%      { transform: rotate(45deg) translate3d(0, 6px, 0); }
+}
+
+.chair {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.chair__imageButton {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  width: clamp(80px, 12vw, 160px);
+  height: clamp(80px, 12vw, 160px);
+}
+
+.chair__image {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.chair__controls {
+  display: inline-flex;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--ui-shadow);
+  backdrop-filter: blur(10px);
+}
+
+.chair__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(18, 21, 26, 0.25);
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+}
+
+.chair__dot--active {
+  background: rgba(181, 92, 255, 0.75);
+  border-color: rgba(181, 92, 255, 0.85);
+}
+
+.treeButton {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  width: clamp(100px, 14vw, 200px);
+  height: clamp(120px, 16vw, 230px);
+}
+
+.treeButton__img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  width: 100%;
+  height: auto;
+  user-select: none;
+  filter: drop-shadow(rgba(0, 0, 0, 0.16) 0 8px 10px);
+}
+
+.treeHud {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.treeHud__pill {
+  pointer-events: auto;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  padding: 10px 14px;
+  border-radius: 999px;
+  box-shadow: var(--ui-shadow);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.newFlowerButton {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 12px 18px;
+  border-radius: 999px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0 18px 34px -22px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+}
+
+.newFlowerButton::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #ffb1ec, #ff5ed4);
+  box-shadow: rgba(255, 94, 212, 0.45) 0 10px 18px -10px;
+}
+
+.treeHud__pill {
+  border-color: rgba(181, 92, 255, 0.28);
+}
+
+.treeView {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.treeView__img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(800px, 90vw);
+  max-width: none;
+  height: auto;
+  transform-origin: center;
+  will-change: transform;
+  user-select: none;
+  pointer-events: none;
+}
+
+.estancoView {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.estancoView__base {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.estancoView__piedra {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(16px, 4vh, 48px);
+  transform: translate3d(-50%, 0, 0);
+  width: clamp(180px, 35vw, 460px);
+  height: auto;
+  border-radius: 18px;
+  box-shadow: rgba(0, 0, 0, 0.18) 0 18px 34px -22px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.modalOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+}
+
+.modalSheet {
+  width: min(520px, calc(100vw - 28px));
+  border-radius: 28px;
+  background: rgba(40, 40, 40, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: rgba(0, 0, 0, 0.35) 0 30px 60px -34px;
+  padding: 22px 18px 18px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.modalTitle {
+  margin: 2px 0 14px;
+  font-size: 34px;
+  letter-spacing: -0.02em;
+}
+
+.modalSection {
+  margin: 14px 0;
+}
+
+.modalLabel {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.colorRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.colorDot {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: rgba(0, 0, 0, 0.28) 0 12px 18px -14px;
+  cursor: pointer;
+}
+
+.colorDot--active {
+  outline: 3px solid rgba(255, 255, 255, 0.65);
+  outline-offset: 2px;
+}
+
+.modalInput {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(18, 21, 26, 0.92);
+  box-sizing: border-box;
+}
+
+.modalTextarea {
+  width: 100%;
+  min-height: 110px;
+  resize: none;
+  border: none;
+  border-radius: 28px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(18, 21, 26, 0.92);
+  box-sizing: border-box;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.modalButton {
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 12px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.modalButton--primary {
+  background: rgba(255, 255, 255, 0.18);
+}
