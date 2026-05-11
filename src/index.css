@@ -103,11 +103,17 @@ button {
   left: 50%;
   bottom: 0;
   transform: translate3d(-50%, 0, 0);
-  width: max(100%, 110vw);
+  width: clamp(600px, 80vw, 1000px);
   max-width: none;
   height: auto;
   user-select: none;
   pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .scene__hills {
+    width: 100vw;
+  }
 }
 
 .miniDoor {
@@ -263,26 +269,43 @@ button {
 .mainLayout__chair {
   position: absolute;
   left: 50%;
-  top: 38%;
-  transform: translate3d(-50%, -50%, 0);
+  bottom: clamp(80px, 18vh, 200px);
+  transform: translate3d(-50%, 0, 0);
 }
 
 .mainLayout__tree {
   position: absolute;
-  right: clamp(28px, 10vw, 160px);
-  top: 38%;
-  transform: translate3d(0, -50%, 0);
+  right: clamp(40px, 15vw, 200px);
+  bottom: clamp(100px, 22vh, 260px);
+  transform: translate3d(0, 0, 0);
+  overflow: hidden;
 }
 
 .mainLayout__arrowButton {
   position: absolute;
-  left: 50%;
-  bottom: 12vh;
-  transform: translate3d(-50%, 0, 0);
+  left: 24px;
+  bottom: 24px;
+  transform: none;
   border: none;
   background: transparent;
   padding: 12px;
   cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .mainLayout__chair {
+    bottom: clamp(60px, 14vh, 120px);
+  }
+  
+  .mainLayout__tree {
+    right: clamp(20px, 8vw, 80px);
+    bottom: clamp(80px, 16vh, 160px);
+  }
+  
+  .mainLayout__arrowButton {
+    left: 16px;
+    bottom: 16px;
+  }
 }
 
 .mainLayout__arrow {
@@ -312,8 +335,15 @@ button {
   background: transparent;
   padding: 0;
   cursor: pointer;
-  width: clamp(80px, 12vw, 160px);
-  height: clamp(80px, 12vw, 160px);
+  width: clamp(60px, 10vw, 120px);
+  height: clamp(60px, 10vw, 120px);
+}
+
+@media (max-width: 768px) {
+  .chair__imageButton {
+    width: clamp(50px, 18vw, 100px);
+    height: clamp(50px, 18vw, 100px);
+  }
 }
 
 .chair__image {
@@ -358,19 +388,27 @@ button {
   background: transparent;
   padding: 0;
   cursor: pointer;
-  width: clamp(100px, 14vw, 200px);
-  height: clamp(120px, 16vw, 230px);
+  width: clamp(80px, 12vw, 160px);
+  height: clamp(60px, 8vw, 100px);
+  overflow: hidden;
 }
 
 .treeButton__img {
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  width: 100%;
+  bottom: 0;
+  transform: translate3d(-50%, 40%, 0);
+  width: 200%;
   height: auto;
   user-select: none;
   filter: drop-shadow(rgba(0, 0, 0, 0.16) 0 8px 10px);
+}
+
+@media (max-width: 768px) {
+  .treeButton {
+    width: clamp(60px, 20vw, 120px);
+    height: clamp(45px, 12vw, 80px);
+  }
 }
 
 .treeHud {
@@ -458,17 +496,149 @@ button {
   object-fit: cover;
 }
 
-.estancoView__piedra {
+.estancoView__inputContainer {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(100px, 18vh, 200px);
+  transform: translate3d(-50%, 0, 0);
+  z-index: 10;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translate3d(-50%, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.estancoView__input {
+  width: clamp(260px, 40vw, 400px);
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(173, 216, 230, 0.9);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: rgba(0, 0, 0, 0.12) 0 8px 20px -10px;
+  outline: none;
+}
+
+.estancoView__input::placeholder {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.estancoView__piedraWrapper {
   position: absolute;
   left: 50%;
   bottom: clamp(16px, 4vh, 48px);
   transform: translate3d(-50%, 0, 0);
-  width: clamp(180px, 35vw, 460px);
+  cursor: pointer;
+  z-index: 5;
+  transition: transform 0.2s ease;
+}
+
+.estancoView__piedraWrapper--draggable {
+  cursor: grab;
+  animation: stonePulse 2s ease-in-out infinite;
+}
+
+.estancoView__piedraWrapper--dragging {
+  cursor: grabbing;
+  animation: none;
+  z-index: 100;
+}
+
+@keyframes stonePulse {
+  0%, 100% { transform: translate3d(-50%, 0, 0) scale(1); }
+  50% { transform: translate3d(-50%, -5px, 0) scale(1.02); }
+}
+
+.estancoView__piedra {
+  width: clamp(80px, 15vw, 140px);
   height: auto;
   border-radius: 18px;
   box-shadow: rgba(0, 0, 0, 0.18) 0 18px 34px -22px;
   user-select: none;
   pointer-events: none;
+}
+
+.estancoView__piedraText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(80, 70, 60, 0.9);
+  font-size: clamp(10px, 2vw, 14px);
+  font-weight: 600;
+  text-align: center;
+  max-width: 90%;
+  word-wrap: break-word;
+  pointer-events: none;
+}
+
+.estancoView__splash {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 50;
+}
+
+.estancoView__ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  animation: rippleExpand 0.8s ease-out forwards;
+}
+
+.estancoView__ripple--1 {
+  animation-delay: 0s;
+}
+
+.estancoView__ripple--2 {
+  animation-delay: 0.15s;
+}
+
+.estancoView__ripple--3 {
+  animation-delay: 0.3s;
+}
+
+@keyframes rippleExpand {
+  0% {
+    width: 20px;
+    height: 10px;
+    opacity: 1;
+  }
+  100% {
+    width: 200px;
+    height: 100px;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .estancoView__piedra {
+    width: clamp(60px, 20vw, 100px);
+  }
+  
+  .estancoView__input {
+    width: clamp(220px, 70vw, 320px);
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+  
+  .estancoView__inputContainer {
+    bottom: clamp(80px, 14vh, 140px);
+  }
 }
 
 .modalOverlay {
@@ -567,4 +737,140 @@ button {
 
 .modalButton--primary {
   background: rgba(255, 255, 255, 0.18);
+}
+
+/* Tree Flowers */
+.treeFlowers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.treeFlower {
+  position: absolute;
+  pointer-events: auto;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  width: clamp(30px, 5vw, 50px);
+  height: clamp(30px, 5vw, 50px);
+  transform: translate3d(-50%, -50%, 0);
+  transition: transform 0.2s ease;
+}
+
+.treeFlower:hover {
+  transform: translate3d(-50%, -50%, 0) scale(1.15);
+}
+
+.treeFlower__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Flower Interior View */
+.flowerInterior {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.flowerInterior__content {
+  width: min(480px, calc(100vw - 48px));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flowerInterior__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.flowerInterior__icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.flowerInterior__title {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 42px);
+  color: rgba(90, 70, 50, 0.92);
+  letter-spacing: -0.02em;
+}
+
+.flowerInterior__info {
+  border-bottom: 1px solid rgba(90, 70, 50, 0.2);
+  padding-bottom: 16px;
+}
+
+.flowerInterior__infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  color: rgba(90, 70, 50, 0.75);
+}
+
+.flowerInterior__label {
+  text-decoration: underline;
+}
+
+.flowerInterior__value {
+  font-weight: 500;
+}
+
+.flowerInterior__card {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 20px;
+  padding: 16px 20px;
+  box-shadow: rgba(0, 0, 0, 0.08) 0 8px 20px -10px;
+}
+
+.flowerInterior__nota {
+  margin: 0;
+  color: rgba(60, 50, 40, 0.9);
+  line-height: 1.5;
+}
+
+.flowerInterior__close {
+  align-self: center;
+  margin-top: 16px;
+  border: 1px solid rgba(90, 70, 50, 0.3);
+  background: rgba(255, 255, 255, 0.7);
+  color: rgba(90, 70, 50, 0.9);
+  padding: 12px 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.flowerInterior__close:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 768px) {
+  .treeFlower {
+    width: clamp(24px, 8vw, 40px);
+    height: clamp(24px, 8vw, 40px);
+  }
+  
+  .flowerInterior__icon {
+    width: 36px;
+    height: 36px;
+  }
 }
