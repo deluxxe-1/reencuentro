@@ -1,4 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
+import { getAuth, type Auth } from 'firebase/auth'
 import { getFirestore, type Firestore } from 'firebase/firestore'
 
 type FirebaseEnvConfig = {
@@ -21,6 +22,7 @@ function isFirebaseConfigured(env: FirebaseEnvConfig): boolean {
 
 export type FirebaseClients = {
   app: FirebaseApp
+  auth: Auth
   db: Firestore
 }
 
@@ -40,6 +42,6 @@ export function getFirebaseClients(): FirebaseClients | null {
           appId: env.VITE_FIREBASE_APP_ID!,
         })
 
-  return { app, db: getFirestore(app) }
+  return { app, auth: getAuth(app), db: getFirestore(app) }
 }
 

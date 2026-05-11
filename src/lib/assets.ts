@@ -32,6 +32,8 @@ export const ASSETS = {
   },
   tree: {
     base: assetPath('/assets/arbol/arbol arbol.png'),
+    mainTree: assetPath('/assets/arbol/aarbol main.png'),
+    dentroFlor: assetPath('/assets/arbol/dentro-flor.png'),
     flor: {
       amarilla: assetPath('/assets/arbol/flor amarilla.png'),
       azul: assetPath('/assets/arbol/flor azul.png'),
@@ -42,4 +44,15 @@ export const ASSETS = {
     },
   },
 } as const
+
+export type FlowerColor = keyof typeof ASSETS.tree.flor
+
+export const FLOWER_HEX_COLORS: Record<FlowerColor, string> = {
+  amarilla: '#FFF9C4',
+  rosa: '#FFB1EC',
+  morada: '#E1BEE7',
+  verdeOscura: '#B2DFDB',
+  naranja: '#FFCCBC',
+  azul: '#B3E5FC',
+}
 
