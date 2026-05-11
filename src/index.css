@@ -269,14 +269,14 @@ button {
 .mainLayout__chair {
   position: absolute;
   left: 50%;
-  bottom: clamp(80px, 18vh, 200px);
+  bottom: clamp(160px, 35vh, 380px);
   transform: translate3d(-50%, 0, 0);
 }
 
 .mainLayout__tree {
   position: absolute;
-  right: clamp(60px, 18vw, 260px);
-  bottom: clamp(120px, 26vh, 300px);
+  right: clamp(80px, 20vw, 320px);
+  bottom: clamp(140px, 30vh, 340px);
   transform: translate3d(0, 0, 0);
 }
 
@@ -293,17 +293,17 @@ button {
 
 @media (max-width: 768px) {
   .mainLayout__chair {
-    bottom: clamp(60px, 14vh, 120px);
+    bottom: clamp(120px, 30vh, 240px);
   }
   
   .mainLayout__tree {
-    right: clamp(30px, 12vw, 100px);
-    bottom: clamp(100px, 20vh, 180px);
+    right: clamp(20px, 12vw, 120px);
+    bottom: clamp(100px, 24vh, 200px);
   }
   
   .mainLayout__arrowButton {
-    left: 16px;
-    bottom: clamp(80px, 14vh, 120px);
+    left: 12px;
+    bottom: clamp(140px, 36vh, 260px);
   }
 }
 

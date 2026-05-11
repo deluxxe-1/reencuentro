@@ -1,9 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 
-export function MiniDoor() {
+type MiniDoorProps = {
+  onClick?: () => void
+}
+
+export function MiniDoor({ onClick }: MiniDoorProps) {
   const navigate = useNavigate()
+  const handleClick = onClick ?? (() => navigate('/main'))
   return (
-    <button type="button" className="miniDoor" onClick={() => navigate('/main')} aria-label="Ir al jardín">
+    <button type="button" className="miniDoor" onClick={handleClick} aria-label="Ir al jardín">
       <span className="miniDoor__shape" aria-hidden="true" />
     </button>
   )

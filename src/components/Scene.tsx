@@ -51,7 +51,11 @@ export function Scene({
       ) : null}
 
       <div className="scene__content">{children}</div>
-      {showDoorToMain ? <MiniDoor /> : null}
+      {showDoorToMain ? (
+        <div className="scene__doorWrapper">
+          <MiniDoor />
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, type User } from 'firebase/auth'
-import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } from 'firebase/firestore'
+import {
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  type User,
+} from 'firebase/auth'
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { MiniDoor } from '../components/MiniDoor'
 import { getFirebaseClients } from '../lib/firebase'
 import { ASSETS, FLOWER_HEX_COLORS, type FlowerColor } from '../lib/assets'
@@ -15,7 +28,7 @@ const COLOR_OPTIONS: { id: FlowerColor; hex: string }[] = [
   { id: 'azul', hex: '#55D7FF' },
 ]
 
-type ViewState = 'trunk' | 'auth' | 'tree'
+type ViewState = 'trunk' | 'auth' | 'rising' | 'tree'
 type AuthMode = 'login' | 'register'
 
 type Flower = {
@@ -23,27 +36,26 @@ type Flower = {
   color: FlowerColor
   tema: string
   nota: string
-  items: FlowerItem[]
   createdAt: Date
 }
 
-type FlowerItem = {
-  type: 'youtube' | 'image' | 'text'
-  content: string
+function nameToEmail(name: string): string {
+  const slug = name.trim().toLowerCase().replace(/[^a-z0-9]/g, '')
+  return `${slug}@reencuentro.app`
 }
 
 export function TreeRoute() {
   const navigate = useNavigate()
   const firebase = getFirebaseClients()
-  
+
   const [viewState, setViewState] = useState<ViewState>('trunk')
   const [authMode, setAuthMode] = useState<AuthMode>('register')
-  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const [menuOpen, setMenuOpen] = useState(false)
   const [color, setColor] = useState<FlowerColor>('rosa')
   const [tema, setTema] = useState('')
@@ -51,34 +63,38 @@ export function TreeRoute() {
   const [flowers, setFlowers] = useState<Flower[]>([])
   const [selectedFlower, setSelectedFlower] = useState<Flower | null>(null)
 
-  // Check auth state
   useEffect(() => {
     if (!firebase) return
-    
     const unsubscribe = onAuthStateChanged(firebase.auth, (currentUser) => {
       setUser(currentUser)
       if (currentUser) {
-        setViewState('tree')
         loadFlowers(currentUser.uid)
+        if (viewState !== 'tree' && viewState !== 'rising') {
+          setViewState('tree')
+        }
       }
     })
-    
     return () => unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firebase])
 
   const loadFlowers = async (userId: string) => {
     if (!firebase) return
-    
     try {
       const flowersRef = collection(firebase.db, 'flowers')
       const q = query(flowersRef, where('userId', '==', userId), orderBy('createdAt', 'desc'))
       const snapshot = await getDocs(q)
-      const loadedFlowers: Flower[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-      })) as Flower[]
-      setFlowers(loadedFlowers)
+      const loaded: Flower[] = snapshot.docs.map((d) => {
+        const data = d.data() as { color: FlowerColor; tema: string; nota: string; createdAt?: { toDate(): Date } }
+        return {
+          id: d.id,
+          color: data.color,
+          tema: data.tema,
+          nota: data.nota,
+          createdAt: data.createdAt?.toDate() ?? new Date(),
+        }
+      })
+      setFlowers(loaded)
     } catch (error) {
       console.log('[v0] Error loading flowers:', error)
     }
@@ -86,41 +102,65 @@ export function TreeRoute() {
 
   const handleTrunkClick = () => {
     if (user) {
-      setViewState('tree')
+      triggerRiseAnimation()
     } else {
       setViewState('auth')
     }
   }
 
+  const triggerRiseAnimation = () => {
+    setViewState('rising')
+    setTimeout(() => setViewState('tree'), 1600)
+  }
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    setAuthError('')
+
     if (!firebase) {
-      setAuthError('Firebase no está configurado')
+      setAuthError('Firebase no está configurado. Verifica las variables de entorno.')
       return
     }
-    
+
+    if (!name.trim()) {
+      setAuthError('Escribe un nombre')
+      return
+    }
+    if (password.length < 6) {
+      setAuthError('La contraseña debe tener al menos 6 caracteres')
+      return
+    }
+
     setIsLoading(true)
-    setAuthError('')
-    
+    const email = nameToEmail(name)
+
     try {
       if (authMode === 'register') {
         await createUserWithEmailAndPassword(firebase.auth, email, password)
       } else {
         await signInWithEmailAndPassword(firebase.auth, email, password)
       }
-      setViewState('tree')
+      triggerRiseAnimation()
     } catch (error: unknown) {
-      const firebaseError = error as { code?: string; message?: string }
-      if (firebaseError.code === 'auth/email-already-in-use') {
-        setAuthError('Este email ya está registrado')
-      } else if (firebaseError.code === 'auth/weak-password') {
+      const err = error as { code?: string; message?: string }
+      const code = err.code ?? ''
+      if (code === 'auth/email-already-in-use') {
+        setAuthError('Ese nombre ya está en uso')
+      } else if (code === 'auth/weak-password') {
         setAuthError('La contraseña debe tener al menos 6 caracteres')
-      } else if (firebaseError.code === 'auth/invalid-email') {
-        setAuthError('Email inválido')
-      } else if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/user-not-found') {
-        setAuthError('Email o contraseña incorrectos')
+      } else if (
+        code === 'auth/wrong-password' ||
+        code === 'auth/user-not-found' ||
+        code === 'auth/invalid-credential'
+      ) {
+        setAuthError('Nombre o contraseña incorrectos')
+      } else if (code === 'auth/network-request-failed') {
+        setAuthError('Error de red. Revisa tu conexión.')
+      } else if (code === 'auth/operation-not-allowed') {
+        setAuthError('Activa Email/Password en Firebase Console')
       } else {
-        setAuthError(firebaseError.message || 'Error de autenticación')
+        setAuthError(err.message ?? 'Error de autenticación')
+        console.log('[v0] Auth error:', err)
       }
     } finally {
       setIsLoading(false)
@@ -129,7 +169,6 @@ export function TreeRoute() {
 
   const handlePlantFlower = async () => {
     if (!firebase || !user) return
-    
     try {
       const flowersRef = collection(firebase.db, 'flowers')
       const docRef = await addDoc(flowersRef, {
@@ -137,19 +176,15 @@ export function TreeRoute() {
         color,
         tema,
         nota,
-        items: [],
         createdAt: serverTimestamp(),
       })
-      
       const newFlower: Flower = {
         id: docRef.id,
         color,
         tema,
         nota,
-        items: [],
         createdAt: new Date(),
       }
-      
       setFlowers((prev) => [newFlower, ...prev])
       setMenuOpen(false)
       setTema('')
@@ -159,128 +194,157 @@ export function TreeRoute() {
     }
   }
 
-  // Trunk View with gradient background
+  // Trunk-only view (image 1)
   if (viewState === 'trunk') {
     return (
-      <div className="trunkView" onClick={handleTrunkClick}>
-        <img
-          className="trunkView__img"
-          src={ASSETS.tree.base}
-          alt="Tronco del árbol"
-          decoding="async"
-          fetchPriority="high"
-        />
-        <MiniDoor onClick={() => navigate('/')} />
+      <div className="trunkScene">
+        <button
+          type="button"
+          className="trunkScene__trunkButton"
+          onClick={handleTrunkClick}
+          aria-label="Abrir el árbol"
+        >
+          <img
+            className="trunkScene__trunkImg"
+            src={ASSETS.tree.base}
+            alt="Tronco del árbol"
+            decoding="async"
+            fetchPriority="high"
+          />
+        </button>
+        <MiniDoor onClick={() => navigate('/main')} />
       </div>
     )
   }
 
-  // Auth View
+  // Auth form over trunk (image 2)
   if (viewState === 'auth') {
     return (
-      <div className="trunkView">
+      <div className="trunkScene">
         <img
-          className="trunkView__img"
+          className="trunkScene__trunkImg"
           src={ASSETS.tree.base}
           alt="Tronco del árbol"
           decoding="async"
         />
-        
+
         <div className="authOverlay">
           <form className="authSheet" onSubmit={handleAuth}>
             <h2 className="authTitle">
-              {authMode === 'register' ? 'Crea tu cuenta' : 'Inicia sesión'}
+              {authMode === 'register' ? 'Crea tu árbol' : 'Entra a tu árbol'}
             </h2>
-            
+            <p className="authSubtitle">Rellena los datos y cultiva tus pensamientos</p>
+
             <div className="authField">
+              <label className="authLabel" htmlFor="name">Nombre</label>
               <input
-                type="email"
+                id="name"
+                type="text"
                 className="authInput"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Escribe aquí"
+                autoComplete="username"
                 required
               />
             </div>
-            
+
             <div className="authField">
+              <label className="authLabel" htmlFor="password">Contraseña</label>
               <input
+                id="password"
                 type="password"
                 className="authInput"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Contraseña"
+                placeholder="Escribe aquí"
+                autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
                 required
                 minLength={6}
               />
             </div>
-            
+
             {authError && <p className="authError">{authError}</p>}
-            
-            <button type="submit" className="authButton" disabled={isLoading}>
-              {isLoading ? 'Cargando...' : authMode === 'register' ? 'Registrarse' : 'Entrar'}
-            </button>
-            
+
+            <div className="authActions">
+              <button
+                type="button"
+                className="authButton authButton--ghost"
+                onClick={() => setViewState('trunk')}
+                disabled={isLoading}
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="authButton authButton--primary" disabled={isLoading}>
+                {isLoading ? '...' : 'Plantar'}
+              </button>
+            </div>
+
             <button
               type="button"
               className="authSwitch"
-              onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}
+              onClick={() => {
+                setAuthError('')
+                setAuthMode(authMode === 'register' ? 'login' : 'register')
+              }}
             >
-              {authMode === 'register' ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+              {authMode === 'register'
+                ? '¿Ya tienes un árbol? Entra aquí'
+                : '¿No tienes un árbol? Créalo aquí'}
             </button>
           </form>
         </div>
-        
-        <MiniDoor onClick={() => navigate('/')} />
+
+        <MiniDoor onClick={() => navigate('/main')} />
       </div>
     )
   }
 
-  // Tree View with flowers
-  return (
-    <div className="treeFullView">
-      <div className="treeHud">
-        <button type="button" className="newFlowerButton" onClick={() => setMenuOpen(true)}>
-          Nueva flor
-        </button>
-      </div>
+  // Rising animation OR Full tree view
+  const isRising = viewState === 'rising'
 
-      <div className="treeView" aria-label="Vista del árbol">
+  return (
+    <div className={`treeFullView ${isRising ? 'treeFullView--rising' : ''}`}>
+      {!isRising && (
+        <div className="treeHud">
+          <button type="button" className="newFlowerButton" onClick={() => setMenuOpen(true)}>
+            Nueva flor
+          </button>
+        </div>
+      )}
+
+      <div className="treeFullView__imgWrapper">
         <img
-          className="treeView__img treeView__img--centered"
+          className="treeFullView__img"
           src={ASSETS.tree.base}
           alt="Árbol"
           decoding="async"
           fetchPriority="high"
         />
-        
-        {/* Render planted flowers on the tree */}
-        <div className="treeFlowers">
-          {flowers.map((flower, index) => (
-            <button
-              key={flower.id}
-              type="button"
-              className="treeFlower"
-              style={{
-                left: `${30 + (index % 5) * 10}%`,
-                top: `${20 + Math.floor(index / 5) * 15}%`,
-              }}
-              onClick={() => setSelectedFlower(flower)}
-              aria-label={`Flor ${flower.tema || flower.color}`}
-            >
-              <img
-                src={ASSETS.tree.flor[flower.color]}
-                alt=""
-                className="treeFlower__img"
-              />
-            </button>
-          ))}
-        </div>
+
+        {!isRising && (
+          <div className="treeFlowers">
+            {flowers.map((flower, index) => (
+              <button
+                key={flower.id}
+                type="button"
+                className="treeFlower"
+                style={{
+                  left: `${28 + (index % 5) * 11}%`,
+                  top: `${18 + Math.floor(index / 5) * 14}%`,
+                }}
+                onClick={() => setSelectedFlower(flower)}
+                aria-label={`Flor ${flower.tema || flower.color}`}
+              >
+                <img src={ASSETS.tree.flor[flower.color]} alt="" className="treeFlower__img" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* New Flower Modal */}
       {menuOpen && (
-        <div className="modalOverlay" role="dialog" aria-modal="true" aria-label="Planta una nueva flor">
+        <div className="modalOverlay" role="dialog" aria-modal="true">
           <div className="modalSheet">
             <h2 className="modalTitle">Planta una nueva flor</h2>
 
@@ -336,22 +400,26 @@ export function TreeRoute() {
         </div>
       )}
 
-      {/* Flower Interior View */}
       {selectedFlower && (
         <div
           className="flowerInterior"
-          style={{ background: `linear-gradient(180deg, ${FLOWER_HEX_COLORS[selectedFlower.color]} 0%, #FFFDE7 100%)` }}
+          style={{
+            background: `linear-gradient(180deg, ${FLOWER_HEX_COLORS[selectedFlower.color]} 0%, #FFFDE7 100%)`,
+          }}
           onClick={() => setSelectedFlower(null)}
           role="dialog"
           aria-modal="true"
-          aria-label={`Interior de flor ${selectedFlower.tema}`}
         >
           <div className="flowerInterior__content" onClick={(e) => e.stopPropagation()}>
             <div className="flowerInterior__header">
-              <img src={ASSETS.tree.flor[selectedFlower.color]} alt="" className="flowerInterior__icon" />
+              <img
+                src={ASSETS.tree.flor[selectedFlower.color]}
+                alt=""
+                className="flowerInterior__icon"
+              />
               <h2 className="flowerInterior__title">{selectedFlower.tema || 'Mi flor'}</h2>
             </div>
-            
+
             <div className="flowerInterior__info">
               <div className="flowerInterior__infoRow">
                 <span className="flowerInterior__label">Empezó</span>
@@ -374,7 +442,6 @@ export function TreeRoute() {
               type="button"
               className="flowerInterior__close"
               onClick={() => setSelectedFlower(null)}
-              aria-label="Cerrar"
             >
               Cerrar
             </button>
@@ -382,7 +449,7 @@ export function TreeRoute() {
         </div>
       )}
 
-      <MiniDoor onClick={() => navigate('/')} />
+      <MiniDoor onClick={() => navigate('/main')} />
     </div>
   )
 }
