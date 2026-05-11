@@ -264,41 +264,63 @@ button {
 .mainLayout {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.mainLayout__elementsWrapper {
+  position: relative;
+  width: clamp(600px, 80vw, 1000px);
+  height: 55vh;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
 }
 
 .mainLayout__chair {
   position: absolute;
   left: 50%;
-  bottom: clamp(160px, 35vh, 380px);
+  bottom: 38%;
   transform: translate3d(-50%, 0, 0);
+  pointer-events: auto;
+  z-index: 5;
 }
 
 .mainLayout__tree {
   position: absolute;
-  right: clamp(80px, 20vw, 320px);
-  bottom: clamp(140px, 30vh, 340px);
-  transform: translate3d(0, 0, 0);
+  right: -2%;
+  bottom: 22%;
+  pointer-events: auto;
+  z-index: 2;
+  overflow: hidden;
 }
 
 .mainLayout__arrowButton {
   position: absolute;
   left: 24px;
   bottom: clamp(100px, 18vh, 180px);
-  transform: none;
   border: none;
   background: transparent;
   padding: 12px;
   cursor: pointer;
+  pointer-events: auto;
+  z-index: 10;
 }
 
 @media (max-width: 768px) {
+  .mainLayout__elementsWrapper {
+    width: 100vw;
+  }
+  
   .mainLayout__chair {
-    bottom: clamp(120px, 30vh, 240px);
+    bottom: 32%;
   }
   
   .mainLayout__tree {
-    right: clamp(20px, 12vw, 120px);
-    bottom: clamp(100px, 24vh, 200px);
+    right: -4%;
+    bottom: 16%;
   }
   
   .mainLayout__arrowButton {
@@ -387,15 +409,15 @@ button {
   background: transparent;
   padding: 0;
   cursor: pointer;
-  width: clamp(80px, 14vw, 180px);
-  height: clamp(100px, 18vw, 220px);
+  width: clamp(100px, 16vw, 200px);
+  height: clamp(140px, 22vw, 280px);
 }
 
 .treeButton__img {
   position: absolute;
   left: 50%;
   bottom: 0;
-  transform: translate3d(-50%, 0, 0);
+  transform: translate3d(-50%, 25%, 0);
   width: 100%;
   height: auto;
   user-select: none;
@@ -404,8 +426,12 @@ button {
 
 @media (max-width: 768px) {
   .treeButton {
-    width: clamp(60px, 22vw, 140px);
-    height: clamp(80px, 28vw, 180px);
+    width: clamp(70px, 24vw, 160px);
+    height: clamp(100px, 32vw, 200px);
+  }
+  
+  .treeButton__img {
+    transform: translate3d(-50%, 30%, 0);
   }
 }
 

@@ -11,11 +11,13 @@ export function MainRoute() {
   return (
     <Scene backgroundUrl={backgroundUrl} showHills>
       <div className="mainLayout">
-        <div className="mainLayout__chair">
-          <ChairPicker />
-        </div>
-        <div className="mainLayout__tree">
-          <TreeHotspot onClick={() => navigate('/tree')} />
+        <div className="mainLayout__elementsWrapper">
+          <div className="mainLayout__chair">
+            <ChairPicker />
+          </div>
+          <div className="mainLayout__tree">
+            <TreeHotspot onClick={() => navigate('/tree')} />
+          </div>
         </div>
 
         <button type="button" className="mainLayout__arrowButton" onClick={() => navigate('/estanco')}>
