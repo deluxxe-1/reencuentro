@@ -280,21 +280,19 @@ button {
 }
 
 .mainLayout__chair {
-  position: absolute;
-  left: 50%;
-  bottom: 48%;
-  transform: translate3d(-50%, 0, 0);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   pointer-events: auto;
   z-index: 5;
 }
 
 .mainLayout__tree {
-  position: absolute;
-  right: 12%;
-  bottom: 32%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   pointer-events: auto;
-  z-index: 2;
-  overflow: hidden;
+  z-index: 5;
 }
 
 .mainLayout__arrowButton {
